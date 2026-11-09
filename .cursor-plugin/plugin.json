@@ -1,0 +1,20 @@
+{
+  "name": "planpost",
+  "description": "PlanPost, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, render video and carousels, and read revenue per post.",
+  "version": "0.4.0",
+  "author": {
+    "name": "PlanPost",
+    "url": "https://planpo.st"
+  },
+  "homepage": "https://planpo.st/mcp",
+  "repository": "https://github.com/lukBB/planpost-mcp",
+  "license": "MIT",
+  "keywords": [
+    "social-media",
+    "scheduling",
+    "marketing",
+    "analytics",
+    "mcp"
+  ],
+  "logo": "assets/logo.svg"
+}

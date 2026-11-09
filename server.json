@@ -1,0 +1,52 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.lukBB/planpost",
+  "title": "PlanPost",
+  "description": "Schedule posts to 7 social networks, render video and carousels, read analytics and revenue.",
+  "version": "0.4.0",
+  "websiteUrl": "https://planpo.st/mcp",
+  "repository": {
+    "url": "https://github.com/lukBB/planpost-mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.planpo.st/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. Leave empty to sign in with OAuth (the client opens planpo.st in a browser). To use an API key instead, send: Bearer <key>; create one in PlanPost under Settings -> API Keys (starts with pk_live_).",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "planpost-mcp",
+      "version": "0.4.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PLANPOST_API_KEY",
+          "description": "PlanPost API key from Settings -> API Keys (starts with pk_live_).",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "PLANPOST_API_URL",
+          "description": "API base URL. Only change it for a self-hosted PlanPost.",
+          "isRequired": false,
+          "default": "https://api.planpo.st"
+        }
+      ]
+    }
+  ]
+}

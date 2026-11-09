@@ -1,0 +1,71 @@
+{
+  "name": "planpost-mcp",
+  "version": "0.4.0",
+  "//mcpName": "Ownership marker for the official MCP Registry: must equal `name` in server.json, or `mcp-publisher publish` fails validation. Namespace is the GitHub account that owns this repo, verified with `mcp-publisher login github`.",
+  "mcpName": "io.github.lukBB/planpost",
+  "description": "PlanPost MCP server, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube from Claude, Cursor, Codex or any MCP client, render video and carousels, and read revenue per post.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "planpost-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://planpo.st/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukBB/planpost-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lukBB/planpost-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "social-media",
+    "social-media-scheduling",
+    "scheduling",
+    "instagram",
+    "tiktok",
+    "linkedin",
+    "twitter",
+    "facebook",
+    "threads",
+    "youtube",
+    "claude",
+    "claude-code",
+    "cursor",
+    "codex",
+    "gemini-cli",
+    "ai-agent",
+    "planpost"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "pretest": "npm run build",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "typescript": "^5.7.0"
+  }
+}

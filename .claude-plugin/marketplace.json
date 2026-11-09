@@ -1,0 +1,14 @@
+{
+  "name": "planpost-plugins",
+  "owner": {
+    "name": "PlanPost",
+    "url": "https://planpo.st"
+  },
+  "plugins": [
+    {
+      "name": "planpost",
+      "source": "./",
+      "description": "PlanPost, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, render video and carousels, and read revenue per post."
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "planpost": {
+      "type": "http",
+      "url": "https://mcp.planpo.st/mcp"
+    }
+  }
+}
