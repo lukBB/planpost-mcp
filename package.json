@@ -1,6 +1,6 @@
 {
   "name": "planpost-mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "//mcpName": "Ownership marker for the official MCP Registry: must equal `name` in server.json, or `mcp-publisher publish` fails validation. Namespace is the GitHub account that owns this repo, verified with `mcp-publisher login github`.",
   "mcpName": "io.github.lukBB/planpost",
   "description": "PlanPost MCP server, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube from Claude, Cursor, Codex or any MCP client, render video and carousels, and read revenue per post.",

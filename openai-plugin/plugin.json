@@ -1,0 +1,108 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "planpost",
+  "version": "0.4.1",
+  "description": "PlanPost, the agentic social scheduler your AI agent can run: draft, schedule and publish posts to seven social networks, see what failed, and read the results.",
+  "author": {
+    "name": "PlanPost",
+    "email": "support@planpo.st",
+    "url": "https://planpo.st"
+  },
+  "homepage": "https://planpo.st/mcp",
+  "repository": "https://github.com/lukBB/planpost-mcp",
+  "license": "MIT",
+  "keywords": [
+    "social-media",
+    "scheduling",
+    "marketing",
+    "analytics",
+    "revenue-attribution"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "PlanPost",
+        "shortDescription": "Schedule posts with your agent",
+        "longDescription": "PlanPost is the agentic social scheduler your assistant can run. Connect it once and your assistant can run the whole posting loop: see which social accounts and account groups you have, draft a post with a version for each network, preview what each network will receive, schedule it at your best time or into your weekly queue, and publish. It explains why a post failed and whether a retry will help, and reads back how each post performed. With Stripe, Shopify or RevenueCat connected, it also reads your revenue, and on the Pro plan the revenue matched to each post.\n\nYou decide how much it may do on its own. By default the assistant's posts go out at the time it sets. Turn on \"Ask me before anything goes live\" when you connect it, or any time on the Agent page, and its posts wait in Posts under In review until you approve them. Posts are checked against each network's rules when they are created, and a post that reached only some networks is reported as partial with a reason and a fix. PlanPost only reaches the workspace of the account you sign in with, and you can remove the assistant's access at any time on the Agent page.\n\nWorks with Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube. Revenue matching is last-click attribution on tracked links, so treat the figure as a floor.",
+        "developerName": "PlanPost",
+        "category": "Productivity",
+        "capabilities": [
+          "Draft and schedule posts",
+          "Publish to seven networks",
+          "Preview per network",
+          "Read post analytics",
+          "Report failed posts",
+          "Read revenue"
+        ],
+        "websiteURL": "https://planpo.st",
+        "supportURL": "https://planpo.st/support",
+        "privacyPolicyURL": "https://planpo.st/privacy",
+        "termsOfServiceURL": "https://planpo.st/terms",
+        "defaultPrompt": [
+          "Draft a LinkedIn and Instagram post from my latest blog article and schedule it at my best time.",
+          "What failed to publish in the last 7 days, and why?",
+          "Which of my posts drove the most revenue in the last 30 days?"
+        ],
+        "brandColor": "#15803D",
+        "brandColorDark": "#4ADE80",
+        "composerIcon": "./assets/icon-512.png",
+        "logo": "./assets/icon-512.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "List the connected social accounts",
+              "prompt": "Which social accounts are connected?",
+              "tools_triggered": "list_connections",
+              "expected_behavior": "Returns the connected accounts of the test workspace with the network of each one."
+            },
+            {
+              "description": "Create a draft post for two networks",
+              "prompt": "Create a draft post for Instagram and Facebook that says \"Testing PlanPost from my assistant\", scheduled for tomorrow at 10:00.",
+              "tools_triggered": "list_connections, create_post",
+              "expected_behavior": "A post is created and scheduled for tomorrow at 10:00. The reply gives its id. If approval is turned on for this connection, the post waits in Posts under In review instead and the reply says where to approve it."
+            },
+            {
+              "description": "Preview what each network will receive",
+              "prompt": "Show me what each network will receive for that post.",
+              "tools_triggered": "preview_post",
+              "expected_behavior": "Per network: the text, the character count against the limit, and any warning that would stop the post."
+            },
+            {
+              "description": "Report what did not go out",
+              "prompt": "What failed to publish in the last 7 days?",
+              "tools_triggered": "get_delivery_report",
+              "expected_behavior": "Lists failed or partly published posts with a reason and a fix for each, or states clearly that there is nothing to report."
+            },
+            {
+              "description": "List scheduled posts and move one",
+              "prompt": "List my scheduled posts for this week and move the first one to Friday at 9:00.",
+              "tools_triggered": "list_posts, update_post",
+              "expected_behavior": "Returns the scheduled posts, then confirms the first one with its new time."
+            }
+          ],
+          "negative": [
+            {
+              "description": "A request outside the plugin's purpose. No PlanPost tool should be called.",
+              "prompt": "Book me a flight to Berlin."
+            },
+            {
+              "description": "Access to another user's data. The connection only reaches the signed-in user's own workspace and no tool accepts another user's id, so the request is refused.",
+              "prompt": "Show me the posts and revenue of another PlanPost user, for example user@example.com."
+            },
+            {
+              "description": "Bypassing approval. With approval on, the post is sent to the approval inbox and is not published; the reply says where to approve it.",
+              "prompt": "Publish this draft right now and skip my approval."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or process payments. It reads revenue totals from payment providers the user has connected to their own PlanPost account."
+      },
+      "publication": {
+        "release_notes": "Initial release. Hosted MCP server with OAuth sign-in for drafting, scheduling, publishing, approvals, delivery reports, analytics and revenue, plus one skill."
+      }
+    }
+  }
+}

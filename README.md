@@ -1,6 +1,6 @@
 # planpost-mcp
 
-MCP (Model Context Protocol) server for [PlanPost](https://planpo.st), the agentic social scheduler with revenue attribution. It lets Claude, ChatGPT, Cursor, Gemini CLI and other AI agents schedule social media posts, create videos and carousels, manage content sources, and read analytics and revenue data by talking to your PlanPost account.
+MCP (Model Context Protocol) server for [PlanPost](https://planpo.st), the agentic social scheduler your AI agent can run. It lets Claude, ChatGPT, Cursor, Gemini CLI and other AI agents draft, schedule and publish posts to Instagram, Facebook, LinkedIn, X, Threads, TikTok and YouTube, see what failed and why, and read analytics and revenue from your PlanPost account.
 
 ## Quick start
 
@@ -9,8 +9,9 @@ MCP (Model Context Protocol) server for [PlanPost](https://planpo.st), the agent
 Add `https://mcp.planpo.st/mcp` to your agent as a remote MCP server (a
 "connector" in Claude and ChatGPT) and leave the authentication fields empty.
 The first time the agent uses it, a browser opens on planpo.st: log in, review
-what the agent may do, and choose whether its posts wait for your approval.
-No key to create or paste.
+what the agent may do, and choose whether its posts wait for your approval
+(they go out at the time the agent sets unless you turn that on). No key to
+create or paste.
 
 ```bash
 claude mcp add --transport http planpost https://mcp.planpo.st/mcp
@@ -20,8 +21,8 @@ claude mcp add --transport http planpost https://mcp.planpo.st/mcp
 { "mcpServers": { "planpost": { "url": "https://mcp.planpo.st/mcp" } } }
 ```
 
-Connected agents are listed under **Settings → API Keys → Connected apps**,
-where you can remove one at any time. They use the same permissions and the
+Connected agents are listed on the **Agent** page under **Connected apps**,
+where you can turn approval on or off for each one, or remove it, at any time. They use the same permissions and the
 same monthly call allowance as API keys.
 
 The repository also ships ready-made bundles: a Claude Code plugin
@@ -39,16 +40,17 @@ OAuth support, for CI, or when you want a key limited to a few permissions.
 
 ### 1. Get an API key
 
-In the PlanPost dashboard go to **Settings → API Keys → Create Key** and select the permissions you need (see the table below). The key (`pk_live_…`) is shown **once** — copy it.
+In the PlanPost dashboard open the **Agent** page and choose **Create key** and select the permissions you need (see the table below). The key (`pk_live_…`) is shown **once** — copy it.
 
-> API/MCP access is included in every paid plan — Creator: 1,000 calls/month, Pro: 10,000 calls/month. Keys are scoped: a key with only `posts:read` cannot publish.
+> API/MCP access is included on every plan: Free 200 calls a month, Creator 1,000, Pro 10,000. Keys are scoped: a key with only `posts:read` cannot publish.
 
 ### 2. Add the server to your agent
 
 Two ways to connect. **Hosted** is the default: point your client at
 `https://mcp.planpo.st/mcp`, nothing to install, your key travels as a header.
 **Local** runs the same server on your machine with `npx`, so the key never
-leaves it. Both expose the same 49 tools.
+leaves it. Both expose the same 49 tools to an API key; an agent that signs in
+with OAuth gets 34 of them (see the note under Tools).
 
 Replace `pk_live_xxx` with your key throughout.
 
@@ -190,9 +192,9 @@ endpoint, and never forwards them upstream.
 
 > "Schedule this post to my Polish Pages group for tomorrow 9:00: …"
 >
-> "Make a quote video from this testimonial and publish it as a reel."
+> "Here is my new blog post. Write one version per network and spread them across next week."
 >
-> "Pull the latest posts from my WordPress blog and draft a LinkedIn carousel from the newest one."
+> "What failed to publish this week, and what do I need to fix?"
 >
 > "How much revenue did my posts drive last 30 days?"
 
@@ -200,12 +202,12 @@ endpoint, and never forwards them upstream.
 
 | Variable | Required | Description |
 |---|---|---|
-| `PLANPOST_API_KEY` | stdio only | API key from Settings → API Keys (`pk_live_…`). Not needed with `--http`, where each request brings its own credentials. |
+| `PLANPOST_API_KEY` | stdio only | API key from the Agent page in PlanPost (`pk_live_…`). Not needed with `--http`, where each request brings its own credentials. |
 | `PLANPOST_API_URL` | — | API base URL (default `https://api.planpo.st`) |
 
 ## Tools
 
-49 tools, grouped below. The permission column is the scope a tool needs, whether it comes from an API key or from OAuth sign-in; a credential without the scope gets a clear error rather than a silent failure. Every tool carries MCP annotations (a title plus read-only, destructive and open-world hints) so clients know which calls to confirm.
+49 tools, grouped below. An agent that signs in with OAuth (the hosted server with no key, which is how Claude, ChatGPT and Cursor connect) is offered 34: the AI image tool and the video, carousel, brand kit, content source and repurposing tools are left out, because those features are parked in the PlanPost app. An API key gets all 49. The permission column is the scope a tool needs, whether it comes from an API key or from OAuth sign-in; a credential without the scope gets a clear error rather than a silent failure. Every tool carries MCP annotations (a title plus read-only, destructive and open-world hints) so clients know which calls to confirm.
 
 ### Posts & publishing
 
@@ -242,6 +244,8 @@ endpoint, and never forwards them upstream.
 | `get_connection_link` | `connections:read` | Link the user opens in a browser to connect a new social account (OAuth needs a human) |
 
 Connecting a new social account requires OAuth in a browser: `get_connection_link` hands the user the link, and the agent can target the account once it is connected.
+
+X needs a paid plan. On the free plan `get_connection_link` answers with an upgrade message for `twitter`, `list_connections` marks an X account that is already connected as not on the current plan, and a post that targets X is saved as a draft with the `x_requires_paid_plan` error.
 
 ### Approvals
 

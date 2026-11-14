@@ -200,6 +200,43 @@ test("API keys keep working unchanged when OAuth is on", async () => {
   assert.equal(headers["x-planpost-mcp-secret"], undefined);
 });
 
+async function listToolNames(token) {
+  const transport = new StreamableHTTPClientTransport(new URL(`${mcpUrl}/mcp`), {
+    requestInit: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const client = new Client({ name: "planpost-mcp-test", version: "0.0.0" });
+  await client.connect(transport);
+  try {
+    return (await client.listTools()).tools.map((t) => t.name);
+  } finally {
+    await client.close();
+  }
+}
+
+// Directory-listed clients sign in with OAuth. They get the scheduling,
+// results and approval tools the product sells; the AI image tool (the
+// directory forbids generative image models) and the tools of features parked
+// in the app since 2026-11-11 are left out. An API key keeps the full set.
+const PARKED_FOR_SIGNED_IN = [
+  "generate_image",
+  "create_video", "get_video_status", "list_video_templates",
+  "generate_carousel", "render_carousel", "get_carousel_render", "list_carousel_styles", "list_brand_kits",
+  "add_content_source", "delete_content_source", "fetch_source_content", "list_content_sources", "list_imported_content",
+  "repurpose_content",
+];
+
+test("an agent signed in with OAuth is offered only the tools the product sells; an API key gets them all", async () => {
+  const signedIn = await listToolNames("ppo_at_good");
+  for (const name of PARKED_FOR_SIGNED_IN) assert.ok(!signedIn.includes(name), `${name} should be hidden`);
+  for (const name of ["create_post", "list_posts", "get_delivery_report", "get_analytics", "get_revenue_overview", "upload_media"]) {
+    assert.ok(signedIn.includes(name), `${name} should stay`);
+  }
+
+  const withKey = await listToolNames("pk_live_abcdef0123456789");
+  for (const name of PARKED_FOR_SIGNED_IN) assert.ok(withKey.includes(name), `${name} should stay for keys`);
+  assert.equal(withKey.length, signedIn.length + PARKED_FOR_SIGNED_IN.length);
+});
+
 test("an authorization-server outage is a 503, not a 401", async () => {
   introspectionDown = true;
   try {

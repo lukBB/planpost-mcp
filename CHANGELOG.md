@@ -2,6 +2,27 @@
 
 All notable changes to `planpost-mcp`. Versions follow [semver](https://semver.org).
 
+## 0.4.1 — 2026-11-14
+
+### Changed
+- Agents that sign in with OAuth see 34 tools: the scheduling, delivery,
+  analytics, revenue and approval tools. The video, carousel, brand kit,
+  content source and repurposing tools are left out for them, because those
+  features are parked in the PlanPost app; an API key still gets all 49.
+- `create_post` no longer points agents at the carousel tools; several
+  attached images publish as a carousel where the network supports one.
+- Descriptions in the README, `server.json`, the plugin manifests, GEMINI.md
+  and the skill describe the product as it is now: an agentic scheduler, with
+  approval as a choice the user makes (off by default).
+- `generate_image` is among the tools left out for OAuth sign-ins: it calls a
+  generative image model, which the Claude directory does not allow in a
+  listed server.
+- `.claude-plugin/marketplace.json` has a marketplace description.
+
+### Removed
+- The `send-to-plan-post` skill. It described one account's own groups, not
+  the product. `skills/planpost` is the skill to install.
+
 ## 0.4.0 — 2026-11-09
 
 ### Added

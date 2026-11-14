@@ -4,11 +4,14 @@
     "name": "PlanPost",
     "url": "https://planpo.st"
   },
+  "metadata": {
+    "description": "PlanPost plugins for Claude Code: schedule and publish social posts from your agent, and read what each post earned."
+  },
   "plugins": [
     {
       "name": "planpost",
       "source": "./",
-      "description": "PlanPost, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, render video and carousels, and read revenue per post."
+      "description": "PlanPost, the agentic social scheduler your AI agent can run: draft, schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, see what failed and why, and read analytics and revenue."
     }
   ]
 }

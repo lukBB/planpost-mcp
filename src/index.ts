@@ -106,20 +106,61 @@ function formatLinks(links: unknown): string {
 
 // Tool registration is a function so HTTP mode can build a fresh server per
 // request (stateless transport); stdio builds one at startup.
-function buildServer(): McpServer {
+function buildServer(omit: ReadonlySet<string> = NO_TOOLS): McpServer {
   const server = new McpServer(SERVER_INFO);
-  registerTools(server);
+  registerTools(server, omit);
   return server;
 }
 
+const NO_TOOLS: ReadonlySet<string> = new Set();
+
+/**
+ * Tools left out for agents that signed in with OAuth, which is how every
+ * directory-listed client (Claude, ChatGPT, Cursor) connects.
+ *
+ * - generate_image calls a generative image model. The Claude directory's
+ *   compliance step requires the statement "My MCP server does not use AI
+ *   models to generate images, video, or audio", and a tool that is merely
+ *   discouraged would make that statement false.
+ * - Video and carousel templates, brand kits, content sources and repurposing
+ *   belong to features parked in the app since 2026-11-11 (PARKED_NAV in
+ *   apps/web/lib/config/nav.tsx). A signed-in agent is offered what the
+ *   product sells: scheduling, delivery, results and approvals.
+ *
+ * API-key connections, which the user sets up by hand, keep the full set.
+ * To bring a parked feature back, remove its tools here and its nav entry.
+ */
+const OMITTED_FOR_SIGNED_IN_AGENTS: ReadonlySet<string> = new Set([
+  "generate_image",
+  // Video templates
+  "create_video",
+  "get_video_status",
+  "list_video_templates",
+  // Carousel templates and brand kits
+  "generate_carousel",
+  "render_carousel",
+  "get_carousel_render",
+  "list_carousel_styles",
+  "list_brand_kits",
+  // Content sources and repurposing
+  "add_content_source",
+  "delete_content_source",
+  "fetch_source_content",
+  "list_content_sources",
+  "list_imported_content",
+  "repurpose_content",
+]);
+
 // ─── Tools ───
 
-function registerTools(target: McpServer): void {
+function registerTools(target: McpServer, omit: ReadonlySet<string> = NO_TOOLS): void {
 // Every tool below is registered through this shim so its annotations
 // (title, read-only / destructive hints) come from annotations.ts.
 const server = {
-  tool: ((name: string, description: string, schema: any, handler: any) =>
-    target.tool(name, description, schema, annotationsFor(name), handler)) as McpServer["tool"],
+  tool: ((name: string, description: string, schema: any, handler: any) => {
+    if (omit.has(name)) return undefined;
+    return target.tool(name, description, schema, annotationsFor(name), handler);
+  }) as McpServer["tool"],
 };
 
 server.tool(
@@ -176,7 +217,7 @@ server.tool(
     connectionIds: z.array(z.string()).describe("Array of social connection IDs to post to. Use list_connections or list_account_groups to find IDs."),
     platformContent: z.record(z.string(), z.string()).optional().describe("Per-platform content overrides, e.g. { twitter: 'shorter version', linkedin: 'longer version' }"),
     platformSettings: z.record(z.string(), z.any()).optional().describe("Per-platform settings, e.g. { instagram: { isReel: true }, youtube: { title: '...', visibility: 'public' } }. TikTok: a scheduled or published post MUST carry { tiktok: { privacyLevel } } with one of PUBLIC_TO_EVERYONE, MUTUAL_FOLLOW_FRIENDS, FOLLOWER_OF_CREATOR, SELF_ONLY (TikTok makes the user choose who can view each video; without it the API returns 400). Optional tiktok flags: disableComment, disableDuet, disableStitch (default true = off), brandedContent, yourBrand."),
-    postType: z.enum(["post", "reel", "short", "story", "thread"]).optional().describe("Explicit post type (clearer than platformSettings flags, and takes precedence over them). 'reel' needs Instagram/Facebook; 'short' needs YouTube/Instagram/TikTok/Facebook; 'story' needs Instagram/Facebook; 'thread' is X/Twitter-only and requires threadSegments. Defaults to 'post', or is inferred from platformSettings flags (e.g. { instagram: { isReel: true } } → reel). NOTE: a carousel is NOT a postType — attach media with type 'carousel' or use generate_carousel/render_carousel."),
+    postType: z.enum(["post", "reel", "short", "story", "thread"]).optional().describe("Explicit post type (clearer than platformSettings flags, and takes precedence over them). 'reel' needs Instagram/Facebook; 'short' needs YouTube/Instagram/TikTok/Facebook; 'story' needs Instagram (Facebook Stories are not supported); 'thread' is X/Twitter-only and requires threadSegments. Defaults to 'post', or is inferred from platformSettings flags (e.g. { instagram: { isReel: true } } → reel). NOTE: a carousel is NOT a postType — attach several images (or media with type 'carousel') and it publishes as a carousel where the network supports one."),
     threadSegments: z.array(z.string()).optional().describe("Ordered tweet segments for a thread (only used when postType='thread', X/Twitter-only). 2–25 segments, each 1–280 characters."),
     label: z.string().optional().describe("Internal working name shown in the PlanPost dashboard list, e.g. 'Garmin CIRQA - IG Carousel'. Never published to any platform — it just makes a campaign's drafts tellable apart. Highly recommended when creating several posts at once."),
     campaign: z.string().optional().describe("Campaign tag, e.g. 'garmin-cirqa-2026' (slugified automatically). Sets utm.campaign and derives a utm.content token from the format (e.g. 'ig-carousel', 'fb-static'). Group/filter/bulk-delete by this with list_campaigns, list_posts({campaign}) and delete_posts({campaign})."),
@@ -559,11 +600,18 @@ server.tool(
       if (h.status === "degraded") return "  ⚠️ last publish failed, will retry";
       return `  ⛔ cannot publish${h.reason ? ` [${h.reason}]` : ""}${h.lastError ? `: ${String(h.lastError).slice(0, 120)}` : ""}`;
     };
+    // `planBlocked` means the platform is not on the account's current plan
+    // (X needs a paid plan). The account is connected and healthy, but a post
+    // that targets it fails preflight with `x_requires_paid_plan`, so flag it
+    // here before the agent picks it.
+    const planTag = (c: any): string =>
+      c.planBlocked ? `  ⛔ not on the current plan, needs ${c.requiredPlan === "pro" ? "Pro" : "Creator or Pro"}` : "";
     const summary = connections.map((c: any) =>
-      `${c.provider} — ${c.metadata?.accountName || c.providerUsername} (ID: ${c.id})${healthTag(c)}`
+      `${c.provider} — ${c.metadata?.accountName || c.providerUsername} (ID: ${c.id})${planTag(c) || healthTag(c)}`
     ).join("\n");
     const dead = connections.filter((c: any) => c.health?.status === "dead").length;
-    const headline = `${connections.length} connected accounts${dead ? `, ${dead} cannot publish until fixed` : ""}:`;
+    const planBlocked = connections.filter((c: any) => c.planBlocked).length;
+    const headline = `${connections.length} connected accounts${dead ? `, ${dead} cannot publish until fixed` : ""}${planBlocked ? `, ${planBlocked} not on the current plan` : ""}:`;
     return { content: [{ type: "text" as const, text: `${headline}\n\n${summary}\n\nFull data:\n${JSON.stringify(connections, null, 2)}` }] };
   }
 );
@@ -1333,7 +1381,9 @@ async function startHttp(port: number, host: string): Promise<void> {
       }
 
       const body = await readBody(req);
-      const server = buildServer();
+      const server = buildServer(
+        credential.kind === "grant" ? OMITTED_FOR_SIGNED_IN_AGENTS : NO_TOOLS,
+      );
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined, // stateless
       });

@@ -1,7 +1,7 @@
 {
   "name": "planpost",
-  "version": "0.4.0",
-  "description": "PlanPost, the agentic social scheduler with revenue attribution: schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, render video and carousels, and read revenue per post.",
+  "version": "0.4.1",
+  "description": "PlanPost, the agentic social scheduler your AI agent can run: draft, schedule and publish posts to Instagram, TikTok, LinkedIn, X, Facebook, Threads and YouTube, see what failed and why, and read analytics and revenue.",
   "mcpServers": {
     "planpost": {
       "httpUrl": "https://mcp.planpo.st/mcp"
